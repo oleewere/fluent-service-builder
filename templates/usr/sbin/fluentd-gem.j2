@@ -1,0 +1,4 @@
+#!/bin/sh
+export GEM_HOME="{{ templateVars["gem_install_path"] }}/"
+export GEM_PATH="{{ templateVars["gem_install_path"] }}/"
+{{ templateVars["install_path"] }}/bin/fluent-gem "$@"

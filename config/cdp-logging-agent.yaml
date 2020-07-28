@@ -1,0 +1,157 @@
+package:
+  PACKAGE_NAME: "cdp-logging-agent"
+  PACKAGE_VERSION: "1.0.0"
+  PACKAGE_DISPLAY_NAME: "CDP Logging Agent"
+  PACKAGE_DESCRIPTION: "Data collector for Cloudera Inc."
+  USER: "root"
+  GROUP: "root"
+  COMPANY: "Cloudera Inc."
+  COPYRIGHT: "Oliver Szabo <oszabo@cloudera.com> and others"
+  WEBPAGE: "https://cloudera.com"
+  WEBPAGE_DOCS: "https://docs.cloudera.com/"
+release:
+  RELEASE_COMMAND: "aws s3 cp"
+  RELEASE_COMMAND_PARAMETERS: "build/cdp_logging_agent*.rpm s3://cloudera-service-delivery-cache/telemetry/cdp-logging-agent/${VERSION}/ --acl public-read"
+outputFolder: build
+builderDockerImageName: cloudera/fluent-service-builder:latest
+fpmDockerImageName:  cloudera/fpm:centos8
+fluentd:
+  FLUENTD_REPO: "https://github.com/fluent/fluentd.git"
+  FLUENTD_REVISION: "6beca80f6467fd2e12ea25b21e0474d978007b08"
+  JEMALLOC_VERSION: "5.2.1"
+gems:
+  - name: bundler
+    version: 2.1.4
+  - name: msgpack
+    version: 1.3.3
+  - name: cool.io
+    version: 1.6.0
+  - name: serverengine
+    version: 2.2.1
+  - name: oj
+    version: 3.10.6
+  - name: async-http
+    version: 0.52.4
+  - name: http_parser.rb
+    version: 0.6.0
+  - name: yajl-ruby
+    version: 1.4.1
+  - name: sigdump
+    version: 0.2.4
+  - name: tzinfo
+    version: 2.0.2
+  - name: tzinfo-data
+    version: 1.2020.1
+plugin_gems:
+  #- name: httpclient
+  #  version: 2.8.2.4
+  - name: fluent-plugin-databus
+    version: 1.0.5
+    profile: databus
+    repo: https://repository.cloudera.com/cloudera/api/gems/cloudera-gems/
+  - name: fluent-plugin-azurestorage
+    version: 1.0.2
+    profile: wasb
+    repo: https://repository.cloudera.com/cloudera/api/gems/cloudera-gems/
+  - name: fluent-plugin-azurestorage-gen2
+    version: 0.3.1
+    profile: abfs
+  - name: fluent-plugin-redaction
+    version: 0.1.2
+  - name: fluent-plugin-rewrite-tag-filter
+    version: 2.3.0
+  - name: fluent-plugin-record-modifier
+    version: 2.1.0
+  - name: fluent-plugin-detect-exceptions
+    version: 0.0.13
+  - name: fluent-plugin-cloudwatch-logs
+    version: 0.10.2
+    profile: aws
+  # cloudwatch dependencies - START
+  - name: http-2
+    version: 0.10.2
+    profile: aws
+  - name: aws-sdk-cloudwatchlogs
+    version: 1.34.0
+    profile: aws
+  # cloudwatch dependencies - END
+  - name: fluent-plugin-s3
+    version: 1.3.3
+    profile: aws
+  # s3 dependencies - START
+  - name: jmespath
+    version: 1.4.0
+    profile: aws
+  - name: aws-partitions
+    version: 1.337.0
+    profile: aws 
+  - name: aws-sigv4
+    version: 1.2.1
+    profile: aws
+  - name: aws-sdk-core
+    version: 3.102.1
+    profile: aws
+  - name: aws-sdk-kms
+    version: 1.35.0
+    profile: aws
+  - name: aws-sdk-sqs
+    version: 1.29.0
+    profile: aws
+  - name: aws-sdk-s3
+    version: 1.72.0 
+    profile: aws
+  # s3 dependencies - END
+  - name: fluent-plugin-webhdfs
+    version: 1.2.5
+    profile: hdfs
+  # webhdfs dependencies - START
+  - name: webhdfs
+    version: 0.9.0
+    profile: hdfs
+  # webhdfs dependencies - END
+  - name: fluent-plugin-kafka
+    version: 0.13.0
+    profile: kafka
+  # kafka dependencies - START
+  - name: ruby-kafka
+    version: 1.1.0
+    profile: kafka
+  - name: rdkafka
+    version: 0.8.0
+    profile: kafka
+  # kafka dependencies - END
+  - name: fluent-plugin-elasticsearch
+    version: 4.0.9
+    profile: elasticsearch
+  # elasticsearch dependencies - START
+  - name: elasticsearch
+    version: 7.8.0
+    profile: elasticsearch
+  # elasticsearch dependencies - END
+  - name: fluent-plugin-prometheus
+    version: 1.8.0
+    profile: prometheus
+  - name: fluent-plugin-prometheus_pushgateway
+    version: 0.0.2
+    profile: prometheus
+  # prometheus dependencies - START
+  - name: prometheus-client
+    version: 0.9.0
+    profile: prometheus
+  # prometheus dependencies - END
+  - name: fluent-plugin-systemd
+    version: 1.0.2
+    profile: systemd
+  # systemd dependencies - START
+  - name: systemd-journal
+    version: 1.3.3
+    profile: systemd
+  # systemd dependencies - END
+ruby:
+  BUNDLED_RUBY_VERSION: "2.7.1"
+  BUNDLED_RUBY_SOURCE_SHA256SUM: "d418483bdd0000576c1370571121a6eb24582116db0b7bb2005e90e250eae418"
+  BUNDLED_RUBY_PATCHES:
+    - "ruby-2.7/0001-Removed-the-old-executables-of-racc.patch": "~> 2.7.0"
+    - "ruby-2.7/0002-Fixup-a6864f6d2f39bcd1ff04516591cc18d4027ab186.patch": "~> 2.7.0"
+  BUNDLED_RUBY_INSTALLER_X64_VERSION: "2.7.1-1"
+  BUNDLED_RUBY_INSTALLER_X64_SHA256SUM: "e89f11517bfa9b8f58956fa387d36a08299740b776d10b3827938242e5306c5d"

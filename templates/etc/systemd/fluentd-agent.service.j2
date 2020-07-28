@@ -1,0 +1,35 @@
+[Unit]
+Description={{ templateVars["project_name"] }}: Fluentd based data collector for {{ templateVars["company"] }}
+Documentation={{ templateVars["project_webpage_docs"] }}:
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User="{{ templateVars["project_user"] }}"
+Group="{{ templateVars["project_group"] }}"
+LimitNOFILE=65536
+Environment=LD_PRELOAD={{ templateVars["install_path"] }}/lib/libjemalloc.so
+Environment=GEM_HOME={{ templateVars["install_path"] }}/
+Environment=GEM_PATH={{ templateVars["install_path"] }}/
+Environment=FLUENT_CONF=/etc/{{ templateVars["project_name"] }}/{{ templateVars["project_name"] }}.conf
+Environment=FLUENT_PLUGIN=/etc/{{ templateVars["project_name"] }}/plugin
+Environment=FLUENT_SOCKET=/var/run/{{ templateVars["project_name"] }}/{{ templateVars["project_name"] }}.sock
+Environment={{ templateVars["project_var_prefix"] }}_LOG_FILE=/var/log/{{ templateVars["project_name"] }}/{{ templateVars["project_name"] }}.log
+Environment={{ templateVars["project_var_prefix"] }}_OPTIONS=
+{% if "pkg_type" in templateVars and templateVars["pkg_type"] == 'deb' %}
+EnvironmentFile=-/etc/default/{{ templateVars["project_name"] }}
+{% else %}
+EnvironmentFile=-/etc/sysconfig/{{ templateVars["project_name"] }}
+{% endif %}
+PIDFile="{{ os.path.join("/var", "run", templateVars["project_name"], templateVars["project_name"] + ".pid") }}"
+RuntimeDirectory="{{ templateVars["project_name"] }}"
+Type=forking
+# XXX: Fix fluentd executables path
+ExecStart=/opt/{{ templateVars["project_name"] }}/bin/fluentd --log ${{ templateVars["project_var_prefix"] }}_LOG_FILE --daemon "{{ os.path.join("/var", "run", templateVars["project_name"], templateVars["project_name"] + ".pid") }}" ${{ templateVars["project_var_prefix"] }}_OPTIONS
+ExecStop=/bin/kill -TERM ${MAINPID}
+ExecReload=/bin/kill -HUP ${MAINPID}
+Restart=always
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

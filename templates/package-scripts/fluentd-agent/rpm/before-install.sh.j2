@@ -1,0 +1,6 @@
+if ! getent group {{ templateVars["project_name"] }} >/dev/null; then
+    /usr/sbin/groupadd -r {{ templateVars["project_name"] }}
+fi
+if ! getent passwd {{ templateVars["project_name"] }} >/dev/null; then
+    /usr/sbin/adduser -r -g {{ templateVars["project_name"] }} -d /var/lib/{{ templateVars["project_name"] }} -s /sbin/nologin -c '{{ templateVars["project_name"] }}' {{ templateVars["project_name"] }}
+fi

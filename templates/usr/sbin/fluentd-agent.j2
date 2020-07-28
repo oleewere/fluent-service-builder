@@ -1,0 +1,7 @@
+#!{{ templateVars["install_path"] }}/bin/ruby
+ENV["GEM_HOME"]="{{ templateVars["gem_install_path"] }}/"
+ENV["GEM_PATH"]="{{ templateVars["gem_install_path"] }}/"
+ENV["FLUENT_CONF"]="/etc/{{ templateVars["project_name"] }}/{{ templateVars["project_name"] }}.conf"
+ENV["FLUENT_PLUGIN"]="/etc/{{ templateVars["project_name"] }}/plugin"
+ENV["FLUENT_SOCKET"]="/var/run/{{ templateVars["project_name"] }}/{{ templateVars["project_name"] }}.sock"
+load "{{ templateVars["install_path"] }}/bin/fluentd"

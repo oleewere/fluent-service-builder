@@ -1,0 +1,99 @@
+#! /bin/sh
+
+set -e
+
+. /usr/share/debconf/confmodule
+
+prevver="$2"
+
+add_system_user() {
+    if ! getent passwd {{ templateVars["project_name"] }} >/dev/null; then
+        adduser --group --system --home /var/lib/{{ templateVars["project_name"] }} {{ templateVars["project_name"] }}
+    fi
+}
+
+add_directories() {
+    mkdir -p /var/run/{{ templateVars["project_name"] }}
+    mkdir -p /etc/{{ templateVars["project_name"] }}
+    mkdir -p /etc/{{ templateVars["project_name"] }}/plugin
+    mkdir -p /var/log/{{ templateVars["project_name"] }}
+}
+
+fixperms() {
+    dpkg-statoverride --list /var/run/{{ templateVars["project_name"] }} >/dev/null || \
+        dpkg-statoverride --update --add {{ templateVars["project_name"] }} {{ templateVars["project_name"] }} 0755 /var/run/{{ templateVars["project_name"] }}
+    dpkg-statoverride --list /etc/{{ templateVars["project_name"] }} >/dev/null || \
+        dpkg-statoverride --update --add {{ templateVars["project_name"] }} {{ templateVars["project_name"] }} 0755 /etc/{{ templateVars["project_name"] }}
+    dpkg-statoverride --list /var/log/{{ templateVars["project_name"] }} >/dev/null || \
+        dpkg-statoverride --update --add {{ templateVars["project_name"] }} {{ templateVars["project_name"] }} 0755 /var/log/{{ templateVars["project_name"] }}
+}
+
+update_conffile() {
+    CONFFILE="$1"
+    TMPL="$2"
+
+    if [ -e "$CONFFILE" ]; then
+        md5sum="`md5sum \"$CONFFILE\" | sed -e \"s/ .*//\"`"
+        old_md5sum="`sed -n -e \"/^Conffiles:/,/^[^ ]/{\\\\' $TMPL'{s/.* //;p}}\" /var/lib/dpkg/status`"
+        if [ -z "$old_md5sum" ]; then
+           # backward compatibility
+            old_md5sum="`sed -n -e \"/^Conffiles:/,/^[^ ]/{\\\\' $CONFFILE'{s/.* //;p}}\" /var/lib/dpkg/status`"
+        fi
+
+        if [ "$md5sum" != "$old_md5sum" ]; then
+            echo "Conffile $CONFFILE has been modified. Remain untouched."
+            # do nothing
+        else
+            echo "Updating conffile $CONFFILE ..."
+            cp -f "$TMPL" "$CONFFILE"
+        fi
+    else
+        echo "Installing default conffile $CONFFILE ..."
+        cp -f "$TMPL" "$CONFFILE"
+    fi
+
+    # 2011/11/13 Kazuki Ohta <k@treasure-data.com>
+    # Before td-agent v1.1.0, fluentd has a bug of loading plugin before
+    # changing to the right user. Then, these directories were created with
+    # root permission. The following lines fix that problem.
+    if [ -d "/var/log/{{ templateVars["project_name"] }}/buffer/" ]; then
+        chown -R {{ templateVars["project_name"] }}:{{ templateVars["project_name"] }} /var/log/{{ templateVars["project_name"] }}/buffer/
+    fi
+    if [ -d "/tmp/{{ templateVars["project_name"] }}/" ]; then
+        chown -R {{ templateVars["project_name"] }}:{{ templateVars["project_name"] }} /tmp/{{ templateVars["project_name"] }}/
+    fi
+}
+
+case "$1" in
+    configure)
+        add_system_user
+        add_directories
+        fixperms
+        update_conffile /etc/{{ templateVars["project_name"] }}/{{ templateVars["project_name"] }}.conf /opt/{{ templateVars["project_name"] }}/share/{{ templateVars["project_name"] }}.conf.tmpl
+        ;;
+    abort-upgrade|abort-deconfigure|abort-remove)
+        :
+        ;;
+    *)
+        echo "Called with unknown argument $1, bailing out."
+        exit 1
+        ;;
+esac
+
+
+if [ ! -e "/etc/default/{{ templateVars["project_name"] }}" ]; then
+  cat > /etc/default/{{ templateVars["project_name"] }} <<EOF
+# This file is sourced by /bin/sh from /etc/init.d/{{ templateVars["project_name"] }}
+# Options to pass to {{ templateVars["project_name"] }}
+TD_AGENT_OPTIONS=""
+
+EOF
+fi
+
+<% if install_message %>
+if [ "$1" = "configure" ]; then
+  echo "<%= install_message %>"
+fi
+<% end %>
+
+#DEBHELPER#

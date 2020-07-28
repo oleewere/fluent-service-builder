@@ -1,0 +1,23 @@
+#! /bin/sh
+
+set -e
+
+. /usr/share/debconf/confmodule
+
+if [ "$1" = "purge" ]; then
+        rm -f /etc/default/{{ templateVars["project_name"] }}
+        rm -f /etc/{{ templateVars["project_name"] }}/{{ templateVars["project_name"] }}.conf
+	dpkg-statoverride --list /etc/{{ templateVars["project_name"] }} > /dev/null && \
+		dpkg-statoverride --remove /etc/{{ templateVars["project_name"] }}
+	rm -f /var/run/{{ templateVars["project_name"] }}/*
+	dpkg-statoverride --list /var/run/{{ templateVars["project_name"] }} > /dev/null && \
+		dpkg-statoverride --remove /var/run/{{ templateVars["project_name"] }}
+	rm -rf /var/log/{{ templateVars["project_name"] }}/buffer
+	rm -rf /var/log/{{ templateVars["project_name"] }}/*
+	dpkg-statoverride --list /var/log/{{ templateVars["project_name"] }} > /dev/null && \
+		dpkg-statoverride --remove /var/log/{{ templateVars["project_name"] }}
+
+    getent passwd {{ templateVars["project_name"] }} && userdel -r {{ templateVars["project_name"] }}
+fi
+
+#DEBHELPER#
