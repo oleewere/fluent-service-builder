@@ -1,6 +1,6 @@
 # fluent-service-builder
 
-FluentD service package builder. Currently support only RPM packages
+FluentD service package builder. Currently support only RPM packages. Built based on [onmibus-td-agent](https://github.com/treasure-data/omnibus-td-agent) and [td-agent-builder](https://github.com/fluent-plugins-nursery/td-agent-builder)
 
 ## Description
 
