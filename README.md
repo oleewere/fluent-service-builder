@@ -17,15 +17,17 @@ FluentD service package builder. Currently support only RPM packages. Built base
 
 ## Usage
 
+Build rpm:
+
 ```bash
-make install-rpm
+make install-rpm PACKAGE_CONFIG=config/logging-agent.yaml
 ```
 
 ## Release
 
 ```
 git tag "1.0.0"
-make release
+make release PACKAGE_CONFIG=config/logging-agent.yaml
 ```
 
 ## Development
