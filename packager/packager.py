@@ -36,8 +36,10 @@ def buildDockerContainer(configOpt, profiles, overrideVersion):
             plugin_gems_without_repo.append("%s##%s" % (plugin_gem["name"], plugin_gem["version"]))
     plugin_gems_str=";".join(plugin_gems_without_repo)
     plugin_gems_with_repo_str=";".join(plugin_gems_with_repo)
-    
-    dockerfile_dir=os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
+
+    default_folder="centos"
+    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "os", default_folder, "Dockerfile")
+    pathdir=os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
     docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
     # gem install path - tiny version always 0
     gemDirVersion=rubyVersion.rsplit('.',1)[0] + ".0"
@@ -51,7 +53,7 @@ def buildDockerContainer(configOpt, profiles, overrideVersion):
     build_args["BUNDLED_RUBY_VERSION"]=rubyVersion
     build_args["BUNDLED_RUBY_FEATURE_VERSION"]=rubyVersion.rsplit('.',1)[0]
     build_args["JEMALLOC_VERSION"]=config["fluentd"]["JEMALLOC_VERSION"]
-    streamer = docker_client.build(path=dockerfile_dir, tag=builderDockerImageName, rm=True, decode=True, buildargs=build_args)
+    streamer = docker_client.build(path=pathdir, dockerfile=dockerfile, tag=builderDockerImageName, rm=True, decode=True, buildargs=build_args)
     for chunk in streamer:
         if 'stream' in chunk:
             for line in chunk['stream'].splitlines():

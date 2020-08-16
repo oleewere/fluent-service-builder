@@ -63,7 +63,7 @@ create-python-env:
 	pip3 install virtualenv
 	python3 -m venv env1
 
-venv: $(VENV_NAME)/bin/activate
+venv: create-python-env $(VENV_NAME)/bin/activate
 
 install-deps: venv
 	${PYTHON} setup.py install
@@ -75,7 +75,7 @@ create-pre-package:
 	cp -r build/generated/** build/package
 
 build-fpm-container:
-	docker build -t $(DOCKER_FPM_CONTAINER) -f Dockerfile.fpm .
+	docker build -t $(DOCKER_FPM_CONTAINER) -f docker/fpm/Dockerfile .
 
 rpm: build-fpm-container
 	rm -rf ${PWD}/build/*.rpm
@@ -92,7 +92,7 @@ rpm: build-fpm-container
 	  -C /src/build/package .
 
 test-rpm-container:
-	docker build -t oleewere/logging-agent:latest -f Dockerfile.test .
+	docker build -t oleewere/logging-agent:latest -f docker/test/rpm/Dockerfile .
 	docker run --rm --entrypoint bash -it oleewere/logging-agent:latest
 
 release: install-rpm
