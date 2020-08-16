@@ -12,10 +12,18 @@ FluentD service package builder. Currently support only RPM packages. Built base
 ## Requirements
 
 - docker
+- git
 - python3.5+
 - pip3
 
 ## Usage
+
+Clone the repository:
+
+```bash
+git clone git@github.com:oleewere/fluent-service-builder.git
+cd fluent-service-builder
+```
 
 Build rpm:
 
