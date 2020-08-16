@@ -32,5 +32,12 @@ def generate(config, override_version):
     """Generate fluentd files from pre-defined jinja templates"""
     packager.generateTemplates(config, override_version)
 
+@main.command('package')
+@click.option('--config','-c', help='Configuration file for service generatio.', type=click.Path(exists=True), required=True)
+@click.option('--override-version', help='Override package version (configuration).')
+def package(config, override_version):
+    """Generate os package based on the 'build' output"""
+    packager.packageDocker(config, override_version)
+
 if __name__ == "__main__":
     main()

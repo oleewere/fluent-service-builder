@@ -6,6 +6,7 @@ package:
   USER: "root"
   GROUP: "root"
   COMPANY: "Cloudera Inc."
+  LICENSE: "ASL 2.0"
   COPYRIGHT: "Oliver Szabo <oszabo@cloudera.com> and others"
   WEBPAGE: "https://cloudera.com"
   WEBPAGE_DOCS: "https://docs.cloudera.com/"

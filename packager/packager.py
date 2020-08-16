@@ -4,6 +4,8 @@ import requests
 import docker
 import json
 import sys
+import glob
+import sys
 from jinja2 import Environment, Template
 
 def __read_config(configOpt):
@@ -58,6 +60,82 @@ def buildDockerContainer(configOpt, profiles, overrideVersion):
         if 'stream' in chunk:
             for line in chunk['stream'].splitlines():
                 print(line)
+
+def packageDocker(configOpt, overrideVersion):
+    config=__read_config(configOpt)
+    outputFolder=config["outputFolder"]
+    packageFolder=os.path.join(outputFolder, "package")
+    packageName=config["package"]["PACKAGE_NAME"]
+    packageVersion=overrideVersion if overrideVersion else config["package"]["PACKAGE_VERSION"]
+    fpmDockerImageName=config["fpmDockerImageName"]
+    # first, build docker image for fpm
+    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "fpm", "Dockerfile")
+    pathdir=os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
+    print("Build fpm docker image: %s" % fpmDockerImageName)
+    docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
+    streamer = docker_client.build(path=pathdir, dockerfile=dockerfile, tag=fpmDockerImageName, rm=True, decode=True)
+    for chunk in streamer:
+        if 'stream' in chunk:
+            for line in chunk['stream'].splitlines():
+                print(line)
+    print("Build package into %s by %s docker container..." % (outputFolder, fpmDockerImageName))
+    package_type="rpm" # only supported at the moment
+    print("Delete pre-existing rpms from the build folder...")
+    for f in glob.glob(os.path.join(outputFolder, "*.rpm")):
+        os.remove(f)
+    
+    logdir=os.path.join(packageFolder, "var", "log", packageName)
+    if not os.path.exists(logdir):
+        os.makedirs(logdir)
+
+    fpm_build_folder=os.path.join("/src", outputFolder)
+    fpm_params=[]
+    fpm_params.append(("-s", "dir"))
+    fpm_params.append(("--vendor", '"' + config["package"]["COMPANY"] + '"'))
+    fpm_params.append(("--license", '"' + config["package"]["LICENSE"] + '"'))
+    fpm_params.append(("-n", packageName))
+    fpm_params.append(("-v", packageVersion))
+    fpm_params.append(("--iteration", "1"))
+    fpm_params.append(("--url", config["package"]["WEBPAGE"]))
+    fpm_params.append(("-C", os.path.join(fpm_build_folder, "package")))
+    fpm_params.append(("--description", '"' + config["package"]["PACKAGE_DESCRIPTION"] + '"'))
+    if package_type == "rpm":
+        rpm_name="%s-%s.x86_64.rpm" % (packageName.replace("-", "_"), packageVersion)
+        package_scripts_folder=os.path.join(fpm_build_folder, "package-scripts", "rpm")
+        fpm_params.append(("-t", "rpm"))
+        fpm_params.append(("-p", os.path.join(fpm_build_folder, rpm_name)))
+        fpm_params.append(("--after-install", os.path.join(package_scripts_folder, "after-install.sh")))
+        fpm_params.append(("--before-install", os.path.join(package_scripts_folder, "before-install.sh")))
+        fpm_params.append(("--before-remove", os.path.join(package_scripts_folder, "before-remove.sh")))
+        fpm_params.append(("--rpm-summary", '"' + config["package"]["PACKAGE_DESCRIPTION"] + '"'))
+        fpm_params.append(("--rpm-user", config["package"]["USER"]))
+        fpm_params.append(("--rpm-group", config["package"]["GROUP"]))
+        fpm_params.append(("--rpm-defattrfile", "0750"))
+        fpm_params.append(("--rpm-defattrdir", "0750"))
+        fpm_params.append(("--rpm-tag", "'Requires(pre): /usr/bin/getent, /usr/sbin/adduser'"))
+        fpm_params.append(("--rpm-tag", "'Requires: libyaml'"))
+    print("fpm params:")
+    fpm_params_str=''
+    for t in fpm_params:
+        fpm_params_str="%s %s %s" % (fpm_params_str, t[0], t[1])
+    fpm_params_str=fpm_params_str + " ."
+    print(fpm_params_str)
+    volumes={pathdir: {'bind': '/src', 'mode': 'rw'}}
+    client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+    container=client.containers.run(fpmDockerImageName, fpm_params_str, 
+        volumes=volumes, 
+        user="%s:%s" % (os.getuid(), os.getgid()), 
+        detach=True,
+    )
+    result = container.wait()
+    exit_code=result["StatusCode"]
+    print("Container logs:")
+    print(container.logs())
+    container.remove()
+    if exit_code != 0:
+        print("Exit code of the container: %s" % exit_code)
+        sys.exit(1)
+
 
 def generateTemplates(configOpt, overrideVersion):
     config=__read_config(configOpt)

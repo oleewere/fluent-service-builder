@@ -7,6 +7,7 @@ package:
   GROUP: "root"
   COMPANY: "MyCompany"
   COPYRIGHT: "Oliver Szabo <oleewere@gmail.com>"
+  LICENSE: "ASL 2.0"
   WEBPAGE: "https://github.com/oleewere"
   WEBPAGE_DOCS: "https://github.com/oleewere/fluent-service-builder"
 release:
