@@ -25,7 +25,7 @@ VENV_NAME?=env1
 VENV_ACTIVATE=. $(VENV_NAME)/bin/activate
 PYTHON=${VENV_NAME}/bin/python3
 
-install-rpm: print-build-params clean install-deps build copy-package template create-pre-package package-rpm
+install-rpm: print-build-params clean install-deps build template create-pre-package package-rpm
 
 clean:
 	rm -rf build
@@ -40,11 +40,14 @@ print-build-params:
 build: venv
 	${PYTHON} packager/cli.py build -c $(PACKAGE_CONFIG) --override-version $(VERSION) --profile databus --profile aws --profile abfs
 
+build-deb: venv
+	${PYTHON} packager/cli.py build -c $(PACKAGE_CONFIG) --override-version $(VERSION) --profile databus --profile aws --profile abfs --os-type "debian"
+
 template: venv
 	${PYTHON} packager/cli.py template -c $(PACKAGE_CONFIG) --override-version $(VERSION)
 
-copy-package:
-	docker run --rm -it --entrypoint "cp" -v $$(pwd)/build:/build $(DOCKER_BUILDER_CONTAINER) -r /$(PACKAGE_NAME).tar.gz /build
+template-deb: venv
+	${PYTHON} packager/cli.py template -c $(PACKAGE_CONFIG) --override-version $(VERSION) --os-type "debian"
 
 create-python-env:
 	pip3 install virtualenv

@@ -13,7 +13,7 @@ def __read_config(configOpt):
         config = yaml.load(file, yaml.SafeLoader)
         return config
 
-def buildDockerContainer(configOpt, profiles, overrideVersion):
+def buildDockerContainer(configOpt, profiles, overrideVersion, osType):
     config=__read_config(configOpt)
     outputFolder=config["outputFolder"]
     packageName=config["package"]["PACKAGE_NAME"]
@@ -39,8 +39,13 @@ def buildDockerContainer(configOpt, profiles, overrideVersion):
     plugin_gems_str=";".join(plugin_gems_without_repo)
     plugin_gems_with_repo_str=";".join(plugin_gems_with_repo)
 
-    default_folder="centos"
-    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "os", default_folder, "Dockerfile")
+    os_folder="centos"
+    if osType == "debian":
+        os_folder="debian"
+        imageParts=builderDockerImageName.rsplit(':', 1)
+        builderDockerImageName=("%s:%s" % (imageParts[0] + "-debian", imageParts[1]))
+
+    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "os", os_folder, "Dockerfile")
     pathdir=os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
     docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
     # gem install path - tiny version always 0
@@ -60,8 +65,16 @@ def buildDockerContainer(configOpt, profiles, overrideVersion):
         if 'stream' in chunk:
             for line in chunk['stream'].splitlines():
                 print(line)
+    client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+    volumes={os.path.join(pathdir, "build"): {'bind': '/build', 'mode': 'rw'}}
+    container=client.containers.run(builderDockerImageName, "-r /%s.tar.gz /build" % packageName, 
+        volumes=volumes,
+        detach=False,
+        remove=True,
+        entrypoint="cp"
+    )
 
-def packageDocker(configOpt, overrideVersion):
+def packageDocker(configOpt, overrideVersion, osType):
     config=__read_config(configOpt)
     outputFolder=config["outputFolder"]
     packageFolder=os.path.join(outputFolder, "package")
@@ -137,7 +150,7 @@ def packageDocker(configOpt, overrideVersion):
         sys.exit(1)
 
 
-def generateTemplates(configOpt, overrideVersion):
+def generateTemplates(configOpt, overrideVersion, osType):
     config=__read_config(configOpt)
     outputFolder=config["outputFolder"]
     packageName=config["package"]["PACKAGE_NAME"]
@@ -210,17 +223,28 @@ def generateTemplates(configOpt, overrideVersion):
     packageScriptsFolder=os.path.join(outputFolder, "package-scripts")
     if not os.path.exists(packageScriptsFolder):
         os.mkdir(packageScriptsFolder)
-    rpm_package_template_folder=os.path.join(template_dir, "package-scripts", "fluentd-agent", "rpm")
-    rpm_package_output_folder=os.path.join(packageScriptsFolder, "rpm")
 
-    rpm_before_install_template=os.path.join(rpm_package_template_folder, "before-install.sh.j2")
-    render_template(rpm_before_install_template, rpm_package_output_folder, "before-install.sh", templateVars)
+    if osType == "centos":
+        rpm_package_template_folder=os.path.join(template_dir, "package-scripts", "fluentd-agent", "rpm")
+        rpm_package_output_folder=os.path.join(packageScriptsFolder, "rpm")
 
-    rpm_before_remove_template=os.path.join(rpm_package_template_folder, "before-remove.sh.j2")
-    render_template(rpm_before_remove_template, rpm_package_output_folder, "before-remove.sh", templateVars)
-    
-    rpm_after_install_template=os.path.join(rpm_package_template_folder, "after-install.sh.j2")
-    render_template(rpm_after_install_template, rpm_package_output_folder, "after-install.sh", templateVars)
+        rpm_before_install_template=os.path.join(rpm_package_template_folder, "before-install.sh.j2")
+        render_template(rpm_before_install_template, rpm_package_output_folder, "before-install.sh", templateVars)
+        
+        rpm_before_remove_template=os.path.join(rpm_package_template_folder, "before-remove.sh.j2")
+        render_template(rpm_before_remove_template, rpm_package_output_folder, "before-remove.sh", templateVars)
+        
+        rpm_after_install_template=os.path.join(rpm_package_template_folder, "after-install.sh.j2")
+        render_template(rpm_after_install_template, rpm_package_output_folder, "after-install.sh", templateVars)
+    elif osType == "debian":
+        deb_package_template_folder=os.path.join(template_dir, "package-scripts", "fluentd-agent", "deb")
+        deb_package_output_folder=os.path.join(packageScriptsFolder, "deb")
+
+        deb_before_remove_template=os.path.join(deb_package_template_folder, "postinst")
+        render_template(deb_before_remove_template, deb_package_output_folder, "postinst", templateVars)
+        
+        deb_after_install_template=os.path.join(deb_package_template_folder, "postrm")
+        render_template(deb_after_install_template, deb_package_output_folder, "postrm", templateVars)
 
 def render_template(source_template, target_dir, filename, templateVars):
     template_str=open(source_template, 'r').read()

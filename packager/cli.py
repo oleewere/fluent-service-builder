@@ -21,23 +21,26 @@ def main():
 @click.option('--config','-c', help='Configuration file for service generatio.', type=click.Path(exists=True), required=True)
 @click.option('--profile', '-p', help='Gem profile that are included in the binary', multiple=True, default=[])
 @click.option('--override-version', help='Override package version (configuration).')
-def build(config, profile, override_version):
+@click.option('--os-type', '-t', help='OS type for package generation', type=click.Choice(['centos', 'debian']), default="centos")
+def build(config, profile, override_version, os_type):
     """Generate docker container for fluentd service generation"""
-    packager.buildDockerContainer(config, profile, override_version)
+    packager.buildDockerContainer(config, profile, override_version, os_type)
 
 @main.command('template')
 @click.option('--config','-c', help='Configuration file for service generatio.', type=click.Path(exists=True), required=True)
 @click.option('--override-version', help='Override package version (configuration).')
-def generate(config, override_version):
+@click.option('--os-type', '-t', help='OS type for package generation', type=click.Choice(['centos', 'debian']), default="centos")
+def generate(config, override_version, os_type):
     """Generate fluentd files from pre-defined jinja templates"""
-    packager.generateTemplates(config, override_version)
+    packager.generateTemplates(config, override_version, os_type)
 
 @main.command('package')
 @click.option('--config','-c', help='Configuration file for service generatio.', type=click.Path(exists=True), required=True)
 @click.option('--override-version', help='Override package version (configuration).')
-def package(config, override_version):
+@click.option('--os-type', '-t', help='OS type for package generation', type=click.Choice(['centos', 'debian']), default="centos")
+def package(config, override_version, os_type):
     """Generate os package based on the 'build' output"""
-    packager.packageDocker(config, override_version)
+    packager.packageDocker(config, override_version, os_type)
 
 if __name__ == "__main__":
     main()
