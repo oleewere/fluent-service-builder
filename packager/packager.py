@@ -45,7 +45,7 @@ def buildDockerContainer(configOpt, profiles, overrideVersion, osType):
         imageParts=builderDockerImageName.rsplit(':', 1)
         builderDockerImageName=("%s:%s" % (imageParts[0] + "-debian", imageParts[1]))
 
-    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "os", os_folder, "Dockerfile")
+    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "fluentd", "os", os_folder, "Dockerfile")
     pathdir=os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
     docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
     # gem install path - tiny version always 0
@@ -82,7 +82,7 @@ def packageDocker(configOpt, overrideVersion, osType):
     packageVersion=overrideVersion if overrideVersion else config["package"]["PACKAGE_VERSION"]
     fpmDockerImageName=config["fpmDockerImageName"]
     # first, build docker image for fpm
-    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "fpm", "Dockerfile")
+    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "fluentd", "fpm", "Dockerfile")
     pathdir=os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
     print("Build fpm docker image: %s" % fpmDockerImageName)
     docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
@@ -182,7 +182,7 @@ def generateTemplates(configOpt, overrideVersion, osType):
 
     print(templateVars)
     parent_dir=os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
-    template_dir=os.path.join(parent_dir, "templates")
+    template_dir=os.path.join(parent_dir, "templates", "fluentd")
     
     initd_template=os.path.join(template_dir, "etc", "init.d", "fluentd-agent.j2")
     initd_file_parent=os.path.join(templateOutputDir, "etc", "init.d")

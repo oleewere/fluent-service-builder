@@ -68,7 +68,7 @@ package-rpm: venv
 	${PYTHON} packager/cli.py package -c $(PACKAGE_CONFIG) --override-version $(VERSION)
 
 test-rpm-container:
-	docker build -t oleewere/logging-agent:latest -f docker/test/rpm/Dockerfile .
+	docker build -t oleewere/logging-agent:latest -f docker/fluentd/test/rpm/Dockerfile .
 	docker run --rm --entrypoint bash -it oleewere/logging-agent:latest
 
 release: install-rpm
