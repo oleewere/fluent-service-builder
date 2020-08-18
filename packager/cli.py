@@ -17,7 +17,11 @@ __version__=version()
 def main():
     """Tool for packaging custom fluent service"""
 
-@main.command('build')
+@main.group('fluentd')
+def fluentd():
+    """Fluentd related packaging operations"""
+
+@fluentd.command('build')
 @click.option('--config','-c', help='Configuration file for service generatio.', type=click.Path(exists=True), required=True)
 @click.option('--profile', '-p', help='Gem profile that are included in the binary', multiple=True, default=[])
 @click.option('--override-version', help='Override package version (configuration).')
@@ -26,7 +30,7 @@ def build(config, profile, override_version, os_type):
     """Generate docker container for fluentd service generation"""
     packager.buildDockerContainer(config, profile, override_version, os_type)
 
-@main.command('template')
+@fluentd.command('template')
 @click.option('--config','-c', help='Configuration file for service generatio.', type=click.Path(exists=True), required=True)
 @click.option('--override-version', help='Override package version (configuration).')
 @click.option('--os-type', '-t', help='OS type for package generation', type=click.Choice(['centos', 'debian']), default="centos")
@@ -34,7 +38,7 @@ def generate(config, override_version, os_type):
     """Generate fluentd files from pre-defined jinja templates"""
     packager.generateTemplates(config, override_version, os_type)
 
-@main.command('package')
+@fluentd.command('package')
 @click.option('--config','-c', help='Configuration file for service generatio.', type=click.Path(exists=True), required=True)
 @click.option('--override-version', help='Override package version (configuration).')
 @click.option('--os-type', '-t', help='OS type for package generation', type=click.Choice(['centos', 'debian']), default="centos")

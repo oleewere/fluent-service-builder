@@ -2,7 +2,7 @@
 
 ![license](http://img.shields.io/badge/license-Apache%20v2-blue.svg)
 
-FluentD service package builder. Currently support only RPM packages. Built based on [onmibus-td-agent](https://github.com/treasure-data/omnibus-td-agent) and [td-agent-builder](https://github.com/fluent-plugins-nursery/td-agent-builder)
+Fluent service package builder. Currently support only RPM packages. Built based on [onmibus-td-agent](https://github.com/treasure-data/omnibus-td-agent) and [td-agent-builder](https://github.com/fluent-plugins-nursery/td-agent-builder)
 
 ## Description
 

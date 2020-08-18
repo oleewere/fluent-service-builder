@@ -38,16 +38,19 @@ print-build-params:
 	@echo "--------- INPUT PARAMETERS ---------"
 
 build: venv
-	${PYTHON} packager/cli.py build -c $(PACKAGE_CONFIG) --override-version $(VERSION) --profile databus --profile aws --profile abfs
+	${PYTHON} packager/cli.py fluentd build -c $(PACKAGE_CONFIG) --override-version $(VERSION) --profile databus --profile aws --profile abfs
 
 build-deb: venv
-	${PYTHON} packager/cli.py build -c $(PACKAGE_CONFIG) --override-version $(VERSION) --profile databus --profile aws --profile abfs --os-type "debian"
+	${PYTHON} packager/cli.py fluentd build -c $(PACKAGE_CONFIG) --override-version $(VERSION) --profile databus --profile aws --profile abfs --os-type "debian"
 
 template: venv
-	${PYTHON} packager/cli.py template -c $(PACKAGE_CONFIG) --override-version $(VERSION)
+	${PYTHON} packager/cli.py fluentd template -c $(PACKAGE_CONFIG) --override-version $(VERSION)
 
 template-deb: venv
-	${PYTHON} packager/cli.py template -c $(PACKAGE_CONFIG) --override-version $(VERSION) --os-type "debian"
+	${PYTHON} packager/cli.py fluentd template -c $(PACKAGE_CONFIG) --override-version $(VERSION) --os-type "debian"
+
+package-rpm: venv
+	${PYTHON} packager/cli.py fluentd package -c $(PACKAGE_CONFIG) --override-version $(VERSION)
 
 create-python-env:
 	pip3 install virtualenv
@@ -63,9 +66,6 @@ create-pre-package:
 	mkdir -p build/package
 	tar -xf build/$(PACKAGE_NAME).tar.gz -C build/package
 	cp -r build/generated/** build/package
-
-package-rpm: venv
-	${PYTHON} packager/cli.py package -c $(PACKAGE_CONFIG) --override-version $(VERSION)
 
 test-rpm-container:
 	docker build -t oleewere/logging-agent:latest -f docker/fluentd/test/rpm/Dockerfile .
