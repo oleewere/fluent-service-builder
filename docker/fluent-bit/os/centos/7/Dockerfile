@@ -30,8 +30,6 @@ WORKDIR /tmp/fluent-bit-${FLB_VERSION}/build
 
 RUN cmake3 -DCMAKE_INSTALL_PREFIX=/opt/${PACKAGE_NAME}/ -DCMAKE_INSTALL_SYSCONFDIR=/etc/ \
            -DFLB_DEBUG=On -DFLB_TRACE=On -DFLB_TD=On \
-           -DFLB_SQLDB=On -DFLB_HTTP_SERVER=On \
-           -DFLB_OUT_KAFKA=On \
-           -DFLB_OUT_PGSQL=On ../
+           -DFLB_SQLDB=On -DFLB_HTTP_SERVER=On ../
 
 CMD make -j 2 && cpack -G RPM && cp *.rpm /output/
