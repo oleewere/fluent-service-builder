@@ -52,6 +52,9 @@ template-deb: venv
 package-rpm: venv
 	${PYTHON} packager/cli.py fluentd package -c $(PACKAGE_CONFIG) --override-version $(VERSION)
 
+package-bit-rpm: venv
+	${PYTHON} packager/cli.py fluent-bit package -c $(PACKAGE_CONFIG)
+
 create-python-env:
 	pip3 install virtualenv
 	python3 -m venv env1
@@ -70,6 +73,10 @@ create-pre-package:
 test-rpm-container:
 	docker build -t oleewere/logging-agent:latest -f docker/fluentd/test/rpm/Dockerfile .
 	docker run --rm --entrypoint bash -it oleewere/logging-agent:latest
+
+test-rpm-bit-container:
+	docker build -t oleewere/logging-agent-bit:latest -f docker/fluent-bit/test/rpm/Dockerfile .
+	docker run --rm --entrypoint bash -it oleewere/logging-agent-bit:latest
 
 release: install-rpm
 	${RELEASE_COMMAND} ${RELEASE_COMMAND_PARAMETERS}

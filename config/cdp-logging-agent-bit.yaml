@@ -1,0 +1,6 @@
+package:
+  PACKAGE_NAME: "cdp-logging-agent-bit"
+  PACKAGE_DESCRIPTION: "CDP Logging Agent Bit"
+  FLUENT_BIT_VERSION: "1.5.3"
+builderDockerImageName: cloudera/fluent-bit-service-builder:latest
+outputFolder: build

@@ -21,8 +21,20 @@ def main():
 def fluentd():
     """Fluentd related packaging operations"""
 
+@main.group('fluent-bit')
+def fluentbit():
+    """Fluent-bit related packaging operations"""
+
+@fluentbit.command("package")
+@click.option('--config','-c', help='Configuration file for service generatiom.', type=click.Path(exists=True), required=True)
+@click.option('--os-type', '-t', help='OS type for package generation', type=click.Choice(['centos', 'debian']), default="centos")
+@click.option('--fluent-bit-version','-fv', help='Fluent bit version')
+def package_fluentbit(config, os_type, fluent_bit_version):
+    """Generate fluent-bit os package"""
+    packager.packageFluentBit(config, os_type, fluent_bit_version)
+
 @fluentd.command('build')
-@click.option('--config','-c', help='Configuration file for service generatio.', type=click.Path(exists=True), required=True)
+@click.option('--config','-c', help='Configuration file for service generation.', type=click.Path(exists=True), required=True)
 @click.option('--profile', '-p', help='Gem profile that are included in the binary', multiple=True, default=[])
 @click.option('--override-version', help='Override package version (configuration).')
 @click.option('--os-type', '-t', help='OS type for package generation', type=click.Choice(['centos', 'debian']), default="centos")
@@ -31,7 +43,7 @@ def build(config, profile, override_version, os_type):
     packager.buildDockerContainer(config, profile, override_version, os_type)
 
 @fluentd.command('template')
-@click.option('--config','-c', help='Configuration file for service generatio.', type=click.Path(exists=True), required=True)
+@click.option('--config','-c', help='Configuration file for service generation.', type=click.Path(exists=True), required=True)
 @click.option('--override-version', help='Override package version (configuration).')
 @click.option('--os-type', '-t', help='OS type for package generation', type=click.Choice(['centos', 'debian']), default="centos")
 def generate(config, override_version, os_type):
@@ -39,7 +51,7 @@ def generate(config, override_version, os_type):
     packager.generateTemplates(config, override_version, os_type)
 
 @fluentd.command('package')
-@click.option('--config','-c', help='Configuration file for service generatio.', type=click.Path(exists=True), required=True)
+@click.option('--config','-c', help='Configuration file for service generation.', type=click.Path(exists=True), required=True)
 @click.option('--override-version', help='Override package version (configuration).')
 @click.option('--os-type', '-t', help='OS type for package generation', type=click.Choice(['centos', 'debian']), default="centos")
 def package(config, override_version, os_type):

@@ -254,3 +254,50 @@ def render_template(source_template, target_dir, filename, templateVars):
     rendered_filename=os.path.join(target_dir, filename)
     with open(rendered_filename, "w") as rendered_file:
         rendered_file.write(rendered_str)
+
+def packageFluentBit(configOpt, osType, fluentBitVersion):
+    config=__read_config(configOpt)
+    packageName=config["package"]["PACKAGE_NAME"]
+    packageDescription=config["package"]["PACKAGE_DESCRIPTION"]
+    builderDockerImageName=config["builderDockerImageName"]
+    fluentBitVersion=fluentBitVersion if fluentBitVersion else config["package"]["FLUENT_BIT_VERSION"]
+    fluentBitVersion=fluentBitVersion
+    outputFolder=config["outputFolder"]
+    if not os.path.exists(outputFolder):
+        os.mkdir(outputFolder)
+
+    os_folder = os.path.join("centos", "7")
+    if osType == "centos":
+        # todo
+        pass
+    
+    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "fluent-bit", "os", os_folder, "Dockerfile")
+    pathdir=os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
+    docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
+    build_args={}
+    build_args["PACKAGE_NAME"]=packageName
+    build_args["PACKAGE_DESCRIPTION"]=packageDescription
+    build_args["FLB_VERSION"]=fluentBitVersion
+    build_args["FLB_PREFIX"]="v"
+    streamer = docker_client.build(path=pathdir, dockerfile=dockerfile, tag=builderDockerImageName, rm=True, decode=True, buildargs=build_args)
+    for chunk in streamer:
+        if 'stream' in chunk:
+            for line in chunk['stream'].splitlines():
+                print(line)
+    buildOutputFolder=os.path.join(pathdir, "build", "fluent-bit")
+    if not os.path.exists(outputFolder):
+        os.makedirs(buildOutputFolder)
+    client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+    volumes={buildOutputFolder: {'bind': '/output', 'mode': 'rw'}}
+    container=client.containers.run(builderDockerImageName, 
+        volumes=volumes,
+        detach=True,
+    )
+    result = container.wait()
+    exit_code=result["StatusCode"]
+    print("Container logs:")
+    print(container.logs())
+    container.remove()
+    if exit_code != 0:
+        print("Exit code of the container: %s" % exit_code)
+        sys.exit(1)
