@@ -38,10 +38,10 @@ print-build-params:
 	@echo "--------- INPUT PARAMETERS ---------"
 
 build: venv
-	${PYTHON} packager/cli.py fluentd build -c $(PACKAGE_CONFIG) --override-version $(VERSION) --profile databus --profile aws --profile abfs
+	${PYTHON} packager/cli.py fluentd build -c $(PACKAGE_CONFIG) --override-version $(VERSION) --profile databus --profile aws --profile abfs --profile google
 
 build-deb: venv
-	${PYTHON} packager/cli.py fluentd build -c $(PACKAGE_CONFIG) --override-version $(VERSION) --profile databus --profile aws --profile abfs --os-type "debian"
+	${PYTHON} packager/cli.py fluentd build -c $(PACKAGE_CONFIG) --override-version $(VERSION) --profile databus --profile aws --profile abfs --profile google --os-type "debian"
 
 template: venv
 	${PYTHON} packager/cli.py fluentd template -c $(PACKAGE_CONFIG) --override-version $(VERSION)

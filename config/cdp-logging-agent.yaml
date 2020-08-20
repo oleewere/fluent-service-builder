@@ -102,6 +102,9 @@ plugin_gems:
     version: 1.72.0 
     profile: aws
   # s3 dependencies - END
+  - name: fluent-plugin-gcs
+    version: 0.4.0
+    profile: google
   - name: fluent-plugin-webhdfs
     version: 1.2.5
     profile: hdfs

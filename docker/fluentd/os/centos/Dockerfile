@@ -96,6 +96,9 @@ RUN rm -rf ${GEM_HOME}/gems/*/ext/**/*.la
 RUN rm -rf ${GEM_HOME}/gems/*/ext/**/*.a
 RUN rm -rf ${GEM_HOME}/gems/*/ext/**/.libs
 RUN rm -rf ${GEM_HOME}/gems/*/.github
+# remove unneeded google-api related files
+RUN find ${GEM_HOME}/gems/google-api-client-*/generated/google/apis -mindepth 1 -type d -not -name "storage*_v1" -exec rm -rf {} +; exit 0
+RUN find ${GEM_HOME}/gems/google-api-client-*/generated/google/apis -type f -not -name "storage*_v1" -exec rm -rf {} +; exit 0
 
 # licenses
 RUN mkdir -p ${PACKAGE_DIR}/LICENSES
