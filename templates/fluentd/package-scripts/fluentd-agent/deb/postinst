@@ -90,10 +90,4 @@ TD_AGENT_OPTIONS=""
 EOF
 fi
 
-<% if install_message %>
-if [ "$1" = "configure" ]; then
-  echo "<%= install_message %>"
-fi
-<% end %>
-
 #DEBHELPER#

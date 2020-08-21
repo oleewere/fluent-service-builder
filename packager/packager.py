@@ -81,8 +81,11 @@ def packageDocker(configOpt, overrideVersion, osType):
     packageName=config["package"]["PACKAGE_NAME"]
     packageVersion=overrideVersion if overrideVersion else config["package"]["PACKAGE_VERSION"]
     fpmDockerImageName=config["fpmDockerImageName"]
+    if osType == "debian":
+        imageParts=fpmDockerImageName.rsplit(':', 1)
+        fpmDockerImageName=("%s:%s" % (imageParts[0], "debian-buster"))
     # first, build docker image for fpm
-    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "fluentd", "fpm", "Dockerfile")
+    dockerfile=os.path.join(os.path.dirname((os.path.dirname(os.path.abspath(__file__)))), "docker", "fluentd", "fpm", osType, "Dockerfile")
     pathdir=os.path.dirname((os.path.dirname(os.path.abspath(__file__))))
     print("Build fpm docker image: %s" % fpmDockerImageName)
     docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
@@ -92,10 +95,17 @@ def packageDocker(configOpt, overrideVersion, osType):
             for line in chunk['stream'].splitlines():
                 print(line)
     print("Build package into %s by %s docker container..." % (outputFolder, fpmDockerImageName))
-    package_type="rpm" # only supported at the moment
-    print("Delete pre-existing rpms from the build folder...")
-    for f in glob.glob(os.path.join(outputFolder, "*.rpm")):
-        os.remove(f)
+    package_type="rpm"
+    if osType == "debian":
+        package_type="deb"
+
+    print("Delete pre-existing packages from the build folder...")
+    if osType == "centos":
+        for f in glob.glob(os.path.join(outputFolder, "*.rpm")):
+            os.remove(f)
+    if osType == "debian":
+        for f in glob.glob(os.path.join(outputFolder, "*.deb")):
+            os.remove(f)
     
     logdir=os.path.join(packageFolder, "var", "log", packageName)
     if not os.path.exists(logdir):
@@ -127,6 +137,16 @@ def packageDocker(configOpt, overrideVersion, osType):
         fpm_params.append(("--rpm-defattrdir", "0750"))
         fpm_params.append(("--rpm-tag", "'Requires(pre): /usr/bin/getent, /usr/sbin/adduser'"))
         fpm_params.append(("--rpm-tag", "'Requires: libyaml'"))
+    if package_type == "deb":
+        deb_name="%s-%s_amd64.deb" % (packageName.replace("-", "_"), packageVersion)
+        package_scripts_folder=os.path.join(fpm_build_folder, "package-scripts", "deb")
+        fpm_params.append(("-t", "deb"))
+        fpm_params.append(("-p", os.path.join(fpm_build_folder, deb_name)))
+        fpm_params.append(("--after-install", os.path.join(package_scripts_folder, "postinst")))
+        fpm_params.append(("--before-remove", os.path.join(package_scripts_folder, "postrm")))
+        fpm_params.append(("--deb-user", config["package"]["USER"]))
+        fpm_params.append(("--deb-group", config["package"]["GROUP"]))
+        fpm_params.append(("--no-deb-use-file-permissions", ""))
     print("fpm params:")
     fpm_params_str=''
     for t in fpm_params:

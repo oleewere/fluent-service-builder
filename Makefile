@@ -52,6 +52,9 @@ template-deb: venv
 package-rpm: venv
 	${PYTHON} packager/cli.py fluentd package -c $(PACKAGE_CONFIG) --override-version $(VERSION)
 
+package-deb: venv
+	${PYTHON} packager/cli.py fluentd package -c $(PACKAGE_CONFIG) --override-version $(VERSION) --os-type "debian"
+
 package-bit-rpm: venv
 	${PYTHON} packager/cli.py fluent-bit package -c $(PACKAGE_CONFIG)
 
@@ -77,6 +80,10 @@ test-rpm-container:
 test-rpm-bit-container:
 	docker build -t oleewere/logging-agent-bit:latest -f docker/fluent-bit/test/rpm/Dockerfile .
 	docker run --rm --entrypoint bash -it oleewere/logging-agent-bit:latest
+
+test-deb-container:
+	docker build -t oleewere/logging-agent-deb:latest -f docker/fluentd/test/deb/Dockerfile .
+	docker run --rm --entrypoint bash -it oleewere/logging-agent-deb:latest
 
 release: install-rpm
 	${RELEASE_COMMAND} ${RELEASE_COMMAND_PARAMETERS}
