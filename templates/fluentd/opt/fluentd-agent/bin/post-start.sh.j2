@@ -1,0 +1,5 @@
+#!/bin/sh
+
+if [[ ! -z "{% raw %}${{% endraw %}{{ templateVars["project_var_prefix"] }}_POST_START_SCRIPT}" ]]; then
+    {% raw %}${{% endraw %}{{ templateVars["project_var_prefix"] }}_POST_START_SCRIPT} {% raw %}${{% endraw %}{{ templateVars["project_var_prefix"] }}_POST_START_SCRIPT_PARAMS}
+fi

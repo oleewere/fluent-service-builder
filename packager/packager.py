@@ -232,6 +232,14 @@ def generateTemplates(configOpt, overrideVersion, osType):
     tmp_files_file_parent=os.path.join(templateOutputDir, "usr", "lib", "tmpfiles.d")
     render_template(tmp_files_template, tmp_files_file_parent, "%s.conf" % packageName, templateVars)
 
+    post_start_template=os.path.join(template_dir, "opt", "fluentd-agent", "bin", "post-start.sh.j2")
+    post_start_file_parent=os.path.join(templateOutputDir, "opt", packageName, "bin")
+    render_template(post_start_template, post_start_file_parent, "post-start.sh", templateVars)
+
+    pre_start_template=os.path.join(template_dir, "opt", "fluentd-agent", "bin", "pre-start.sh.j2")
+    pre_start_file_parent=os.path.join(templateOutputDir, "opt", packageName, "bin")
+    render_template(pre_start_template, pre_start_file_parent, "pre-start.sh", templateVars)
+
     ruby_conf_template=os.path.join(template_dir, "opt", "fluentd-agent", "share", "fluentd-agent-ruby.conf.j2")
     ruby_conf_file_parent=os.path.join(templateOutputDir, "opt", packageName, "share")
     render_template(ruby_conf_template, ruby_conf_file_parent, "%s-ruby.conf" % packageName, templateVars)
