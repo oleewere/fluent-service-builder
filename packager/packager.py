@@ -14,6 +14,9 @@ def __read_config(configOpt):
         return config
 
 def buildDockerContainer(configOpt, profiles, overrideVersion, osType):
+    real_host_volume = os.getenv('REAL_HOST_VOLUME')
+    if real_host_volume:
+        print("Real host volume is set: %s" % real_host_volume)
     config=__read_config(configOpt)
     outputFolder=config["outputFolder"]
     packageName=config["package"]["PACKAGE_NAME"]
@@ -66,7 +69,8 @@ def buildDockerContainer(configOpt, profiles, overrideVersion, osType):
             for line in chunk['stream'].splitlines():
                 print(line)
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
-    volumes={os.path.join(pathdir, "build"): {'bind': '/build', 'mode': 'rw'}}
+    volume_path = os.path.join(real_host_volume, "build") if real_host_volume else os.path.join(pathdir, "build")
+    volumes={volume_path: {'bind': '/build', 'mode': 'rw'}}
     container=client.containers.run(builderDockerImageName, "-r /%s.tar.gz /build" % packageName, 
         volumes=volumes,
         detach=False,
@@ -75,6 +79,9 @@ def buildDockerContainer(configOpt, profiles, overrideVersion, osType):
     )
 
 def packageDocker(configOpt, overrideVersion, osType):
+    real_host_volume = os.getenv('REAL_HOST_VOLUME')
+    if real_host_volume:
+        print("Real host volume is set: %s" % real_host_volume)
     config=__read_config(configOpt)
     outputFolder=config["outputFolder"]
     packageFolder=os.path.join(outputFolder, "package")
@@ -153,7 +160,8 @@ def packageDocker(configOpt, overrideVersion, osType):
         fpm_params_str="%s %s %s" % (fpm_params_str, t[0], t[1])
     fpm_params_str=fpm_params_str + " ."
     print(fpm_params_str)
-    volumes={pathdir: {'bind': '/src', 'mode': 'rw'}}
+    volume_path = real_host_volume if real_host_volume else pathdir
+    volumes={volume_path: {'bind': '/src', 'mode': 'rw'}}
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
     container=client.containers.run(fpmDockerImageName, fpm_params_str, 
         volumes=volumes, 
