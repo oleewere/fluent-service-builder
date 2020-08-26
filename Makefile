@@ -1,5 +1,4 @@
-TAG_COMMIT := $(shell git rev-list --abbrev-commit --tags --max-count=1)
-TAG := $(shell git describe --abbrev=0 --tags ${TAG_COMMIT} 2>/dev/null || true)
+TAG := $(shell git tag -l --contains HEAD || true)
 COMMIT := $(shell git rev-parse --short HEAD)
 SNAPSHOT_VERSION := 0.1.0-SNAPSHOT
 VERSION := $(TAG:v%=%)
@@ -38,7 +37,6 @@ print-build-params:
 	@echo "DOCKER_BUILDER_CONTAINER: $(DOCKER_BUILDER_CONTAINER)"
 	@echo "COMMIT: $(COMMIT)"
 	@echo "TAG: $(TAG)"
-	@echo "TAG COMMIT: $(TAG_COMMIT)"
 	@echo "--------- INPUT PARAMETERS ---------"
 
 build: venv
@@ -84,8 +82,8 @@ create-pre-package:
 	cp -r build/generated/** build/package
 
 tag-and-branch:
-	git checkout -b "release/$$(cat VERSION)" $(RELEASE_COMMIT)
 	git tag "v$$(cat VERSION)" $(RELEASE_COMMIT)
+	git checkout -b "release/$$(cat VERSION)" $(RELEASE_COMMIT)
 	git push origin "v$$(cat VERSION)"
 	git push -u origin "release/$$(cat VERSION)"
 
