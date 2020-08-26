@@ -33,27 +33,6 @@ Build rpm:
 make install-rpm PACKAGE_CONFIG=config/logging-agent.yaml
 ```
 
-## Release
-
-### Create tag and branch
-
-```bash
-make tag-and-branch PACKAGE_CONFIG=config/logging-agent.yaml
-```
-
-### Trigger jenkins job:
-
-If tag is pushed with an actual master branch commit, build job will do the release automatically based on the tag.
-
-If you added the tag later you can trigger the release job as well.
-
-- build: https://build.service-delivery.cloudera.com/job/cdp-logging-agent-build
-- release: https://build.service-delivery.cloudera.com/job/cdp-logging-agent-release
-
-### Increase the version
-
-After the release has been finished, increase the value in the `VERSION` file.
-
 ## Development
 
 ```
